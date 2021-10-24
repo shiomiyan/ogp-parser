@@ -1,8 +1,5 @@
-use select::{
-    document::Document,
-    predicate::{And, Attr, Class, Element, Name, Or, Predicate},
-};
-use serde::{Deserialize, Serialize};
+use select::{document::Document, predicate::Name};
+use serde::Serialize;
 use std::{collections::HashMap, convert::Infallible};
 use warp::{Filter, Reply};
 
