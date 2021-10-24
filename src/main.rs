@@ -27,31 +27,37 @@ struct MetaInfo {
     og_sitename: String,
 }
 
-#[derive(Debug)]
-struct Pair {
-    property: String,
-    content: String,
-}
-
 async fn fetch_meta(url: String) -> Result<impl Reply, Infallible> {
     let resp = reqwest::get(url).await.unwrap();
     let body = resp.text().await.unwrap();
     let document = Document::from_read(body.as_bytes()).unwrap();
-    let result = document
+    let mut map: HashMap<String, String> = HashMap::new();
+    let _result = document
         .find(Name("meta"))
         .filter(|v| v.attrs().collect::<Vec<_>>().len() == 2)
-        .filter_map(|v| {
+        .for_each(|v| {
             let attrs = v.attrs().collect::<Vec<_>>();
             if attrs[0].0 == "property" && attrs[1].0 == "content" {
-                Some(Pair {
-                    property: attrs[0].1.to_string(),
-                    content: attrs[1].1.to_string(),
-                })
+                map.insert(attrs[0].1.to_string(), attrs[1].1.to_string());
             } else {
-                None
+                ()
             }
-        })
-        .collect::<Vec<_>>();
+        });
 
-    Ok(format!("{:?}", result))
+    let meta = MetaInfo {
+        og_title: map.get("og:title").unwrap_or(&String::from("")).to_string(),
+        og_image: map.get("og:image").unwrap_or(&String::from("")).to_string(),
+        og_description: map
+            .get("og:description")
+            .unwrap_or(&String::from(""))
+            .to_string(),
+        og_type: map.get("og:type").unwrap_or(&String::from("")).to_string(),
+        og_url: map.get("og:url").unwrap_or(&String::from("")).to_string(),
+        og_sitename: map
+            .get("og:site_name")
+            .unwrap_or(&String::from(""))
+            .to_string(),
+    };
+
+    Ok(format!("{}", serde_json::to_string_pretty(&meta).unwrap()))
 }
