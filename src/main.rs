@@ -56,5 +56,5 @@ async fn fetch_meta(url: String) -> Result<impl Reply, Infallible> {
             .to_string(),
     };
 
-    Ok(warp::reply::json(&serde_json::to_string(&meta).unwrap()))
+    Ok(warp::reply::json(&meta))
 }
